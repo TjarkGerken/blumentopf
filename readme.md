@@ -1,26 +1,26 @@
-# Blumi der Blumentopf
+# Blumi the Flowerpot
 
-Dies ist das GitHub-Repository für die Abgabe im Modul **"Machine Learning Projekt"** an der Dualen Hochschule Baden-Württemberg (DHBW).
+This is the GitHub repository for the submission in the **"Machine Learning Project"** module at the Baden-Württemberg Cooperative State University (DHBW).
 
 ## Mobile App
 
-Diese App läuft auf iOS und Android, sofern die unten genannten Voraussetzungen erfüllt sind.
+This app runs on both iOS and Android, provided the requirements below are met.
 
-### Voraussetzungen
+### Requirements
 
 - [Node.js v22.15.1](https://nodejs.org/en/download)
-- [pnpm](https://pnpm.io/installation#using-homebrew) (empfohlen, Installation via Homebrew)
-- [Expo Go App](https://expo.dev/go) auf dem Smartphone (für das Testen der Anwendung)
+- [pnpm](https://pnpm.io/installation#using-homebrew) (recommended, install via Homebrew)
+- [Expo Go App](https://expo.dev/go) on your smartphone (for testing the application)
 
-### Entwicklungsserver starten
+### Start Development Server
 
 ```sh
 pnpm start
 ```
 
-Scanne anschließend den im Terminal angezeigten QR-Code mit der Expo Go App auf deinem Smartphone, um die Anwendung zu starten.
+Then scan the QR code shown in the terminal with the Expo Go App on your smartphone to launch the application.
 
-### Code-Qualität prüfen
+### Check Code Quality
 
 ```sh
 pnpm lint
