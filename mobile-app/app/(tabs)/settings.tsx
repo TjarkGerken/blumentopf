@@ -1,68 +1,18 @@
 import { Text, ScrollView } from "react-native";
+import { View } from "react-native";
 
 export default function Tab() {
   return (
-    <ScrollView className="flex-1 items-center justify-center">
-      {/* ...your Text components... */}
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text className="text-4xl">Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      <Text>Tab [Settings]</Text>
-      {/* ...repeat as needed... */}
+    <ScrollView>
+      <View className="flex-1 bg-red-100 items-center justify-center">
+        <Text>Tab [Settings]</Text>
+        <Text>Tab [Settings]</Text>
+        <Text>Tab [Settings]</Text>
+        <Text>Tab [Settings]</Text>
+        <Text>Tab [Settings]</Text>
+        <Text>Tab [Settings]</Text>
+        <Text>Tab [Settings]</Text>
+      </View>
     </ScrollView>
   );
 }
