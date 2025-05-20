@@ -1,6 +1,9 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import React from "react";
 import { Tabs } from "expo-router";
-import { View, Text, Button } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+// import { BlurView } from "expo-blur";
+import { Platform, View, Text } from "react-native";
 
 function CompHeaderRight() {
   return (
@@ -31,6 +34,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#14532d",
+        tabBarInactiveTintColor: "#6b7280",
         headerStyle: {
           backgroundColor: "#14532d",
         },
@@ -38,30 +42,54 @@ export default function TabLayout() {
         headerTitleStyle: {
           fontWeight: "bold",
         },
+        tabBarStyle: {
+          backgroundColor: "#ffffff",
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="home" color={color} />
+          title: "My Plants",
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color, fontSize: 12, marginTop: -5 }}>Plants</Text>
           ),
-          headerRight: () => <CompHeaderRight />,
-          headerLeft: () => <CompHeaderLeft />,
-          headerTitle: () => <CompHeaderTitle />, // This hides the title
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="leaf" size={24} color={color} />
+          ),
+          headerTitle: "My Plants",
+        }}
+      />
+      <Tabs.Screen
+        name="stats"
+        options={{
+          title: "Statistics",
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color, fontSize: 12, marginTop: -5 }}>Stats</Text>
+          ),
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="bar-chart" size={24} color={color} />
+          ),
+          headerTitle: "Plant Statistics",
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="cog" color={color} />
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color, fontSize: 12, marginTop: -5 }}>Settings</Text>
           ),
-          headerRight: () => <CompHeaderRight />,
-          headerLeft: () => <CompHeaderLeft />,
-          headerTitle: () => <CompHeaderTitle />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="settings" size={24} color={color} />
+          ),
+          headerTitle: "App Settings",
         }}
       />
     </Tabs>
