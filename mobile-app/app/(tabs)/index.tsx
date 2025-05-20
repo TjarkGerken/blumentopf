@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { PlantCard } from "../../src/components/PlantCard";
 import { Ionicons } from "@expo/vector-icons";
 import { DeviceCard } from "~/components/DeviceCard";
+import { SafeAreaLayout } from "~/components/SaveAreaLayout";
 
 export default function HomeScreen() {
   const { plants, devices } = usePlants();

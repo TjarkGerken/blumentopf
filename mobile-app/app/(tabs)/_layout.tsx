@@ -4,6 +4,7 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 // import { BlurView } from "expo-blur";
 import { Platform, View, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function CompHeaderRight() {
   return (
@@ -30,6 +31,8 @@ function CompHeaderTitle() {
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -47,8 +50,8 @@ export default function TabLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 60,
-          paddingBottom: 8,
+          height: 45 + insets.bottom,
+          paddingBottom: insets.bottom,
           paddingTop: 8,
         },
       }}
