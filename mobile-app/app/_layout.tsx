@@ -7,6 +7,9 @@ import { User } from "@supabase/supabase-js";
 import { View, ActivityIndicator, Text } from "react-native";
 import "./../global.css";
 
+import * as Linking from "expo-linking";
+import { router } from "expo-router";
+
 // Loading screen component
 function LoadingScreen() {
   return (
@@ -23,6 +26,34 @@ export default function RootLayout() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Inside your component
+  useEffect(() => {
+    // Handle deep links when the app is already open
+    const subscription = Linking.addEventListener("url", handleDeepLink);
+
+    // Handle deep links that opened the app
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  const handleDeepLink = ({ url }: { url: string }) => {
+    // Example: "blumentopf://reset-password?token=xyz"
+    const { hostname, path, queryParams } = Linking.parse(url);
+
+    if (hostname === "reset-password") {
+      // Navigate to password reset screen with token
+      router.push({
+        pathname: "/auth/reset-password",
+        params: { token: queryParams?.token },
+      });
+    }
+  };
+
   useEffect(() => {
     // Check current auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,7 +64,7 @@ export default function RootLayout() {
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log(`Supabase auth event: ${event}`);
+        // console.log(`Supabase auth event: ${event}`);
         setUser(session?.user || null);
       },
     );

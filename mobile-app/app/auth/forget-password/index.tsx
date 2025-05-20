@@ -30,7 +30,7 @@ export default function ForgetPasswordScreen() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "myapp://reset-password",
+        redirectTo: "blumentopf://reset-password",
       });
 
       if (error) {

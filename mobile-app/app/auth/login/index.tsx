@@ -70,7 +70,7 @@ export default function LoginScreen() {
           {/* Form */}
           <View className="space-y-5">
             <View>
-              <Text className="text-gray-700 mb-2 font-medium">Email</Text>
+              <Text className="text-gray-700 my-2 font-medium">Email</Text>
               <View className="flex-row bg-gray-100 rounded-lg px-4 py-3 items-center">
                 <Ionicons name="mail-outline" size={18} color="#6b7280" />
                 <TextInput
@@ -86,7 +86,7 @@ export default function LoginScreen() {
             </View>
 
             <View>
-              <Text className="text-gray-700 mb-2 font-medium">Password</Text>
+              <Text className="text-gray-700 my-2 font-medium">Password</Text>
               <View className="flex-row bg-gray-100 rounded-lg px-4 py-3 items-center">
                 <Ionicons
                   name="lock-closed-outline"
@@ -118,7 +118,7 @@ export default function LoginScreen() {
               onPress={() => router.push("/auth/forget-password")}
               className="items-end"
             >
-              <Text className="text-green-700 font-medium">
+              <Text className="text-green-700 py-3 font-medium">
                 Forgot password?
               </Text>
             </TouchableOpacity>

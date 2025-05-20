@@ -1,33 +1,32 @@
 {
   "expo": {
-    "name": "blumi-app",
-    "scheme": "blumi-app",
-    "slug": "blumi-app",
+    "name": "Blumentopf",
+    "slug": "blumentopf-app",
     "version": "1.0.0",
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "experiments": {
-      "tsconfigPaths": true
-    },
-    "plugins": ["expo-router"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#14532d"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourcompany.blumentopf"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
-    }
+        "backgroundColor": "#14532d"
+      },
+      "package": "com.yourcompany.blumentopf"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "blumentopf",
+    "plugins": ["expo-router"]
   }
 }
