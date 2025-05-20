@@ -6,8 +6,8 @@ import { supabase } from "~/initSupabase";
 import { User } from "@supabase/supabase-js";
 import { View, ActivityIndicator, Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as Linking from "expo-linking";
 import "./../global.css";
-import { SafeAreaLayout } from "~/components/SaveAreaLayout";
 
 // Loading screen component
 function LoadingScreen() {
@@ -20,11 +20,47 @@ function LoadingScreen() {
 }
 
 export default function RootLayout() {
+  // 1. All hooks should be at the top level, not inside conditionals
   const segments = useSegments();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 2. URL handling hook
+  useEffect(() => {
+    // Set up URL handler
+    const handleDeepLink = (event: { url: string }) => {
+      console.log("Received deep link:", event.url);
+
+      // Get the path from the URL
+      const { path, queryParams } = Linking.parse(event.url);
+
+      if (path === "reset-password" && queryParams) {
+        // Navigate to the reset password screen with any relevant query params
+        router.push({
+          pathname: "/auth/reset-password",
+          params: queryParams,
+        });
+      }
+    };
+
+    // Add the event listener for deep links when the app is already open
+    const subscription = Linking.addEventListener("url", handleDeepLink);
+
+    // Handle the case where the app was opened via a deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
+
+    // Clean up
+    return () => {
+      subscription.remove();
+    };
+  }, [router]); // Add router as a dependency
+
+  // 3. Auth effect
   useEffect(() => {
     // Check current auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,13 +81,13 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Use the segments to determine if the user is in an auth screen
-  const isInAuthGroup = segments[0] === "auth";
-
+  // 4. Navigation effect - note that all hooks are defined before any conditionals
   useEffect(() => {
     if (loading) return;
 
     // Auth protection logic
+    const isInAuthGroup = segments[0] === "auth";
+
     if (!user && !isInAuthGroup) {
       // User is not signed in and not on an auth page
       router.replace("/auth/login");
@@ -59,9 +95,9 @@ export default function RootLayout() {
       // User is signed in but still on an auth page
       router.replace("/(tabs)");
     }
-  }, [user, segments, loading]);
+  }, [user, segments, loading, router]); // Add router as a dependency
 
-  // Show a loading indicator while checking auth state
+  // 5. Conditional rendering - only AFTER all hooks are defined
   if (loading) {
     return <LoadingScreen />;
   }
