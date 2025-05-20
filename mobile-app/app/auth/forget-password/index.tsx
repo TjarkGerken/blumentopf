@@ -1,152 +1,145 @@
+// app/auth/forget-password/index.tsx
 import React, { useState } from "react";
-import { StatusBar } from "expo-status-bar";
 import {
-  ScrollView,
-  TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Image,
-} from "react-native";
-
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import {
-  Layout,
   Text,
   TextInput,
-  Button,
-  useTheme,
-  themeColor,
-} from "react-native-rapi-ui";
-import { AuthStackParamList } from "~/types/navigation";
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { supabase } from "~/initSupabase";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function ({
-  navigation,
-}: NativeStackScreenProps<AuthStackParamList, "ForgetPassword">) {
-  const { isDarkmode, setTheme } = useTheme();
+export default function ForgetPasswordScreen() {
   const [email, setEmail] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [resetSent, setResetSent] = useState<boolean>(false);
 
-  async function forget() {
-    setLoading(true);
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
-    if (!error) {
-      setLoading(false);
-      alert("Check your email to reset your password!");
+  async function handleResetPassword() {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email address");
+      return;
     }
-    if (error) {
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "myapp://reset-password",
+      });
+
+      if (error) {
+        Alert.alert("Error", error.message);
+      } else {
+        setResetSent(true);
+      }
+    } catch (err) {
+      Alert.alert("Error", "An unexpected error occurred");
+      console.error(err);
+    } finally {
       setLoading(false);
-      alert(error.message);
     }
   }
-  return (
-    <KeyboardAvoidingView behavior="height" enabled style={{ flex: 1 }}>
-      <Layout>
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: isDarkmode ? "#17171E" : themeColor.white100,
-            }}
-          ></View>
-          <View
-            style={{
-              flex: 3,
-              paddingHorizontal: 20,
-              paddingBottom: 20,
-              backgroundColor: isDarkmode ? themeColor.dark : themeColor.white,
-            }}
-          >
-            <Text
-              size="h3"
-              fontWeight="bold"
-              style={{
-                alignSelf: "center",
-                padding: 30,
-              }}
-            >
-              Forget Password
-            </Text>
-            <Text>Email</Text>
-            <TextInput
-              containerStyle={{ marginTop: 15 }}
-              placeholder="Enter your email"
-              value={email}
-              autoCapitalize="none"
-              autoCompleteType="off"
-              autoCorrect={false}
-              keyboardType="email-address"
-              onChangeText={(text) => setEmail(text)}
-            />
-            <Button
-              text={loading ? "Loading" : "Send email"}
-              onPress={() => {
-                forget();
-              }}
-              style={{
-                marginTop: 20,
-              }}
-              disabled={loading}
-            />
 
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 15,
-                justifyContent: "center",
-              }}
-            >
-              <Text size="md">Already have an account?</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate("Login");
-                }}
-              >
-                <Text
-                  size="md"
-                  fontWeight="bold"
-                  style={{
-                    marginLeft: 5,
-                  }}
-                >
-                  Login here
-                </Text>
-              </TouchableOpacity>
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-white"
+    >
+      <ScrollView contentContainerClassName="flex-grow">
+        <View className="flex-1 p-6">
+          {/* Back button */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mt-12 mb-4"
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="arrow-back-outline" size={24} color="#14532d" />
+              <Text className="text-green-700 font-medium ml-1">Back</Text>
             </View>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 30,
-                justifyContent: "center",
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  isDarkmode ? setTheme("light") : setTheme("dark");
-                }}
-              >
-                <Text
-                  size="md"
-                  fontWeight="bold"
-                  style={{
-                    marginLeft: 5,
-                  }}
-                >
-                  {isDarkmode ? "☀️ light theme" : "🌑 dark theme"}
-                </Text>
-              </TouchableOpacity>
+          </TouchableOpacity>
+
+          {/* Header */}
+          <View className="mb-8 items-center">
+            <View className="w-20 h-20 bg-green-700 rounded-full items-center justify-center mb-4">
+              <Ionicons name="lock-open-outline" size={40} color="#fff" />
             </View>
+            <Text className="text-3xl font-bold text-gray-800">
+              Reset Password
+            </Text>
+            <Text className="text-gray-500 mt-2 text-center">
+              Enter your email address and we'll send you instructions to reset
+              your password
+            </Text>
           </View>
-        </ScrollView>
-      </Layout>
+
+          {resetSent ? (
+            <View className="items-center p-6 bg-green-50 rounded-lg">
+              <Ionicons name="mail-outline" size={48} color="#14532d" />
+              <Text className="text-xl font-bold text-gray-800 mt-4">
+                Check Your Email
+              </Text>
+              <Text className="text-gray-600 text-center mt-2">
+                We've sent instructions to reset your password to {email}
+              </Text>
+
+              <TouchableOpacity
+                className="bg-green-700 py-3 px-6 rounded-lg mt-6"
+                onPress={() => router.push("/auth/login")}
+              >
+                <Text className="text-white font-semibold">Back to Login</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="space-y-5">
+              <View>
+                <Text className="text-gray-700 mb-2 font-medium">Email</Text>
+                <View className="flex-row bg-gray-100 rounded-lg px-4 py-3 items-center">
+                  <Ionicons name="mail-outline" size={18} color="#6b7280" />
+                  <TextInput
+                    className="flex-1 ml-2 text-gray-800"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoComplete="email"
+                  />
+                </View>
+              </View>
+
+              <TouchableOpacity
+                className={`bg-green-700 py-4 rounded-lg items-center mt-4 ${loading ? "opacity-70" : ""}`}
+                onPress={handleResetPassword}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white font-semibold text-lg">
+                    Send Reset Instructions
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Footer */}
+          {!resetSent && (
+            <View className="mt-8 flex-row justify-center">
+              <Text className="text-gray-600">Remember your password? </Text>
+              <TouchableOpacity onPress={() => router.push("/auth/login")}>
+                <Text className="text-green-700 font-semibold">Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

@@ -1,5 +1,5 @@
 // app/(tabs)/settings.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -7,11 +7,13 @@ import {
   Switch,
   TouchableOpacity,
   Alert,
-  Button,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "~/initSupabase";
 import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
@@ -48,6 +50,36 @@ export default function SettingsScreen() {
       {action}
     </View>
   );
+
+  // Add these hooks inside your SettingsScreen component
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Add this useEffect to fetch the current user
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      },
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert("Error", error.message);
+    }
+    setIsLoading(false);
+  };
 
   return (
     <ScrollView className="flex-1 bg-gray-50">
@@ -283,27 +315,98 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
           </TouchableOpacity>
         </View>
+        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+          <Text className="text-lg font-bold mb-2">Account</Text>
+
+          {user ? (
+            <>
+              <View className="flex-row items-center py-4 border-b border-gray-100">
+                <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mr-4">
+                  <Ionicons name="person" size={20} color="#14532d" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-800 font-medium">
+                    {user.email}
+                  </Text>
+                  <Text className="text-gray-500 text-sm">Signed in</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                className="flex-row items-center py-4 border-b border-gray-100"
+                onPress={() =>
+                  Alert.alert(
+                    "Account Settings",
+                    "This would open account settings",
+                  )
+                }
+              >
+                <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mr-4">
+                  <Ionicons name="settings-outline" size={20} color="#6366f1" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-800 font-medium">
+                    Account Settings
+                  </Text>
+                  <Text className="text-gray-500 text-sm">
+                    Manage your account details
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-row items-center py-4"
+                onPress={() => {
+                  Alert.alert(
+                    "Sign Out",
+                    "Are you sure you want to sign out?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Sign Out",
+                        onPress: handleLogout,
+                        style: "destructive",
+                      },
+                    ],
+                  );
+                }}
+              >
+                <View className="w-10 h-10 rounded-full bg-red-100 items-center justify-center mr-4">
+                  <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-800 font-medium">Sign Out</Text>
+                  <Text className="text-gray-500 text-sm">
+                    Log out of your account
+                  </Text>
+                </View>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#14532d" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                )}
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              className="flex-row items-center py-4"
+              onPress={() => router.push("/auth/login")}
+            >
+              <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center mr-4">
+                <Ionicons name="log-in-outline" size={20} color="#14532d" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-800 font-medium">Sign In</Text>
+                <Text className="text-gray-500 text-sm">
+                  Log in to your account
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      <Button
-        // status="danger"
-        title="Login"
-        onPress={() => router.push(`/auth/login`)}
-      />
-      <Button
-        // status="danger"
-        title="Logout"
-        onPress={async () => {
-          const { error } = await supabase.auth.signOut();
-          if (!error) {
-            alert("Signed out!");
-          }
-          if (error) {
-            alert(error.message);
-          }
-        }}
-        // The React Native Button does not support a style prop directly.
-        // If you want to add margin, wrap the Button in a View with the desired style.
-      />
     </ScrollView>
   );
 }
