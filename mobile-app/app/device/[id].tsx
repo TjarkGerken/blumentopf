@@ -12,10 +12,20 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import { usePlants } from "../../src/context/PlantProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { PlantDeviceAssociation } from "../../src/components/PlantDeviceAssociation";
 
 export default function DeviceDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getDeviceById, getPlantById, updateDeviceSettings } = usePlants();
+  const {
+    getDeviceById,
+    getPlantById,
+    updateDeviceSettings,
+    associateDeviceWithPlant,
+    disassociateDevice,
+    plants,
+    devices,
+  } = usePlants();
+  const [showAssociationModal, setShowAssociationModal] = useState(false);
 
   const device = getDeviceById(id);
   const plant = device?.plantId ? getPlantById(device.plantId) : undefined;
@@ -56,6 +66,16 @@ export default function DeviceDetailsScreen() {
         enabled: value,
       } as any,
     });
+  };
+
+  // Handle device association
+  const handleAssociation = async (plantId: string, deviceId: string) => {
+    await associateDeviceWithPlant(deviceId, plantId);
+  };
+
+  // Handle device disassociation
+  const handleDisassociation = async (deviceId: string) => {
+    await disassociateDevice(deviceId);
   };
 
   return (
@@ -248,12 +268,23 @@ export default function DeviceDetailsScreen() {
             <Text className="text-gray-400 mt-2">No plant associated</Text>
             <TouchableOpacity
               className="mt-3 bg-green-700 px-4 py-2 rounded-lg"
-              onPress={() => alert("This would open plant selection")}
+              onPress={() => setShowAssociationModal(true)}
             >
-              <Text className="text-white font-medium">Add Plant</Text>
+              <Text className="text-white font-medium">Associate Plant</Text>
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Always show manage association button */}
+        <TouchableOpacity
+          className="mt-3 bg-blue-100 px-4 py-2 rounded-lg flex-row items-center justify-center"
+          onPress={() => setShowAssociationModal(true)}
+        >
+          <Ionicons name="settings" size={16} color="#1d4ed8" />
+          <Text className="text-blue-800 font-medium ml-2">
+            Manage Plant Association
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Device maintenance */}
@@ -347,6 +378,17 @@ export default function DeviceDetailsScreen() {
           <Text className="text-gray-800">{device.id}</Text>
         </View>
       </View>
+
+      {/* Plant Device Association Modal */}
+      <PlantDeviceAssociation
+        visible={showAssociationModal}
+        onClose={() => setShowAssociationModal(false)}
+        plants={plants}
+        devices={devices}
+        selectedDevice={device}
+        onAssociate={handleAssociation}
+        onDisassociate={handleDisassociation}
+      />
     </ScrollView>
   );
 }

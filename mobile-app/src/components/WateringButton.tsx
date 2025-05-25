@@ -1,4 +1,5 @@
-// src/components/WateringButton.tsx
+// src/components/WateringButton.tsx (DEPRECATED - USE WateringControl INSTEAD)
+// This file is kept for backward compatibility but should not be used in new code
 import React from "react";
 import { TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

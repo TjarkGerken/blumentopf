@@ -1,5 +1,5 @@
 // app/(tabs)/index.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,9 +13,19 @@ import { router } from "expo-router";
 import { PlantCard } from "../../src/components/PlantCard";
 import { Ionicons } from "@expo/vector-icons";
 import { DeviceCard } from "~/components/DeviceCard";
+import { PlantDeviceAssociation } from "../../src/components/PlantDeviceAssociation";
 
 export default function HomeScreen() {
-  const { plants, devices, loading, error, refreshData } = usePlants();
+  const {
+    plants,
+    devices,
+    loading,
+    error,
+    refreshData,
+    associateDeviceWithPlant,
+    disassociateDevice,
+  } = usePlants();
+  const [showAssociationModal, setShowAssociationModal] = useState(false);
 
   const getUnhealthyPlants = () => {
     return plants.filter(
@@ -33,6 +43,16 @@ export default function HomeScreen() {
     } catch (err) {
       Alert.alert("Error", "Failed to refresh data. Please try again.");
     }
+  };
+
+  // Handle device association
+  const handleAssociation = async (plantId: string, deviceId: string) => {
+    await associateDeviceWithPlant(deviceId, plantId);
+  };
+
+  // Handle device disassociation
+  const handleDisassociation = async (deviceId: string) => {
+    await disassociateDevice(deviceId);
   };
 
   // Loading state
@@ -72,6 +92,17 @@ export default function HomeScreen() {
         >
           <Ionicons name="refresh" size={16} color="#6b7280" />
           <Text className="text-gray-500 ml-1 text-sm">Pull to refresh</Text>
+        </TouchableOpacity>
+
+        {/* Device Association Button */}
+        <TouchableOpacity
+          className="bg-green-700 rounded-xl p-4 mb-4 flex-row items-center justify-center"
+          onPress={() => setShowAssociationModal(true)}
+        >
+          <Ionicons name="link" size={20} color="#fff" />
+          <Text className="text-white font-medium ml-2">
+            Manage Plant & Device Associations
+          </Text>
         </TouchableOpacity>
 
         {/* Alert section for plants that need attention */}
@@ -151,6 +182,16 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      {/* Plant Device Association Modal */}
+      <PlantDeviceAssociation
+        visible={showAssociationModal}
+        onClose={() => setShowAssociationModal(false)}
+        plants={plants}
+        devices={devices}
+        onAssociate={handleAssociation}
+        onDisassociate={handleDisassociation}
+      />
     </ScrollView>
   );
 }

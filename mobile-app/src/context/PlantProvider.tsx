@@ -29,6 +29,11 @@ interface PlantContextType {
   updateDeviceSettings: (device: BlumentopfDevice) => Promise<void>;
   refreshData: () => Promise<void>;
   loadPlantHistory: (plantId: string) => Promise<void>;
+  associateDeviceWithPlant: (
+    deviceId: string,
+    plantId: string,
+  ) => Promise<void>;
+  disassociateDevice: (deviceId: string) => Promise<void>;
 }
 
 const PlantContext = createContext<PlantContextType | null>(null);
@@ -176,6 +181,41 @@ export const PlantProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const associateDeviceWithPlant = async (
+    deviceId: string,
+    plantId: string,
+  ) => {
+    try {
+      setError(null);
+
+      const result = await deviceService.associateWithPlant(deviceId, plantId);
+
+      setDevices((prev) =>
+        prev.map((device) => (device.id === deviceId ? result : device)),
+      );
+    } catch (err) {
+      console.error("Error associating device with plant:", err);
+      setError("Failed to associate device with plant. Please try again.");
+      throw err;
+    }
+  };
+
+  const disassociateDevice = async (deviceId: string) => {
+    try {
+      setError(null);
+
+      const result = await deviceService.disassociateFromPlant(deviceId);
+
+      setDevices((prev) =>
+        prev.map((device) => (device.id === deviceId ? result : device)),
+      );
+    } catch (err) {
+      console.error("Error disassociating device:", err);
+      setError("Failed to disassociate device. Please try again.");
+      throw err;
+    }
+  };
+
   return (
     <PlantContext.Provider
       value={{
@@ -194,6 +234,8 @@ export const PlantProvider = ({ children }: { children: ReactNode }) => {
         updateDeviceSettings,
         refreshData,
         loadPlantHistory,
+        associateDeviceWithPlant,
+        disassociateDevice,
       }}
     >
       {children}

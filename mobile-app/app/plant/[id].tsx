@@ -12,13 +12,24 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { usePlants } from "../../src/context/PlantProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { PlantDeviceAssociation } from "../../src/components/PlantDeviceAssociation";
+import { WateringControl } from "../../src/components/WateringControl";
 
 export default function PlantDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { getPlantById, getDeviceForPlant, waterPlant, loading, error } =
-    usePlants();
-  const [isWatering, setIsWatering] = useState(false);
+  const {
+    getPlantById,
+    getDeviceForPlant,
+    refreshData,
+    loading,
+    error,
+    associateDeviceWithPlant,
+    disassociateDevice,
+    plants,
+    devices,
+  } = usePlants();
+  const [showAssociationModal, setShowAssociationModal] = useState(false);
 
   const plant = getPlantById(id);
   const device = plant ? getDeviceForPlant(plant.id) : undefined;
@@ -54,22 +65,19 @@ export default function PlantDetailsScreen() {
       )
     : 0;
 
-  const handleWatering = async () => {
-    if (!plant) return;
+  const handleWateringCompleted = () => {
+    // Refresh plant data after watering is completed
+    refreshData();
+  };
 
-    setIsWatering(true);
+  // Handle device association
+  const handleAssociation = async (plantId: string, deviceId: string) => {
+    await associateDeviceWithPlant(deviceId, plantId);
+  };
 
-    try {
-      await waterPlant(plant.id, plant.wateringSchedule.amount);
-      Alert.alert(
-        "Success!",
-        `${plant.name} has been watered with ${plant.wateringSchedule.amount}ml of water.`,
-      );
-    } catch (err) {
-      Alert.alert("Error", "Failed to water the plant. Please try again.");
-    } finally {
-      setIsWatering(false);
-    }
+  // Handle device disassociation
+  const handleDisassociation = async (deviceId: string) => {
+    await disassociateDevice(deviceId);
   };
 
   // Loading state
@@ -174,29 +182,11 @@ export default function PlantDetailsScreen() {
 
       {/* Quick actions */}
       <View className="bg-white mt-2 p-4">
-        <TouchableOpacity
-          className={`px-4 py-3 rounded-full flex-row items-center justify-center ${
-            isWatering ? "bg-blue-200" : "bg-blue-500"
-          }`}
-          onPress={handleWatering}
-          disabled={isWatering}
-        >
-          {isWatering ? (
-            <>
-              <ActivityIndicator size="small" color="#0369a1" />
-              <Text className="text-blue-700 font-medium ml-2">
-                Watering...
-              </Text>
-            </>
-          ) : (
-            <>
-              <Ionicons name="water" size={20} color="white" />
-              <Text className="text-white font-medium ml-2">
-                Water Now ({plant.wateringSchedule.amount}ml)
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <WateringControl
+          plant={plant}
+          device={device}
+          onWateringCompleted={handleWateringCompleted}
+        />
       </View>
 
       {/* Measurements */}
@@ -342,12 +332,23 @@ export default function PlantDetailsScreen() {
             <Text className="text-gray-400 mt-2">No device connected</Text>
             <TouchableOpacity
               className="mt-3 bg-green-700 px-4 py-2 rounded-lg"
-              onPress={() => alert("This would open device pairing")}
+              onPress={() => setShowAssociationModal(true)}
             >
               <Text className="text-white font-medium">Connect a Device</Text>
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Always show manage association button */}
+        <TouchableOpacity
+          className="mt-3 bg-blue-100 px-4 py-2 rounded-lg flex-row items-center justify-center"
+          onPress={() => setShowAssociationModal(true)}
+        >
+          <Ionicons name="settings" size={16} color="#1d4ed8" />
+          <Text className="text-blue-800 font-medium ml-2">
+            Manage Device Association
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Plant notes */}
@@ -365,6 +366,17 @@ export default function PlantDetailsScreen() {
           <Text className="text-gray-400 italic">No notes added yet</Text>
         )}
       </View>
+
+      {/* Plant Device Association Modal */}
+      <PlantDeviceAssociation
+        visible={showAssociationModal}
+        onClose={() => setShowAssociationModal(false)}
+        plants={plants}
+        devices={devices}
+        selectedPlant={plant}
+        onAssociate={handleAssociation}
+        onDisassociate={handleDisassociation}
+      />
     </ScrollView>
   );
 }

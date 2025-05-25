@@ -248,6 +248,47 @@ export const deviceService = {
     return transformDeviceRow(data);
   },
 
+  async associateWithPlant(
+    deviceId: string,
+    plantId: string,
+  ): Promise<BlumentopfDevice> {
+    const { data, error } = await supabase
+      .from("blumentopf_devices")
+      .update({
+        plant_id: plantId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", deviceId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error associating device with plant:", error);
+      throw error;
+    }
+
+    return transformDeviceRow(data);
+  },
+
+  async disassociateFromPlant(deviceId: string): Promise<BlumentopfDevice> {
+    const { data, error } = await supabase
+      .from("blumentopf_devices")
+      .update({
+        plant_id: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", deviceId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error disassociating device from plant:", error);
+      throw error;
+    }
+
+    return transformDeviceRow(data);
+  },
+
   async update(
     id: string,
     updates: Partial<BlumentopfDevice>,
