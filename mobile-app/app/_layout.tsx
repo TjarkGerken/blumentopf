@@ -1,4 +1,5 @@
 // app/_layout.tsx
+import "expo-dev-client";
 import React, { useEffect, useState } from "react";
 import { Stack, useSegments, useRouter } from "expo-router";
 import { PlantProvider } from "../src/context/PlantProvider";
