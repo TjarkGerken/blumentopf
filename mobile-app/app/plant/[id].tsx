@@ -7,18 +7,37 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { usePlants } from "../../src/context/PlantProvider";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function PlantDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getPlantById, getDeviceForPlant, waterPlant } = usePlants();
+  const router = useRouter();
+  const { getPlantById, getDeviceForPlant, waterPlant, loading, error } =
+    usePlants();
   const [isWatering, setIsWatering] = useState(false);
 
   const plant = getPlantById(id);
   const device = plant ? getDeviceForPlant(plant.id) : undefined;
+
+  // Redirect if plant not found and not loading
+  useEffect(() => {
+    if (!loading && !plant) {
+      Alert.alert(
+        "Plant Not Found",
+        "The plant you're looking for doesn't exist.",
+        [
+          {
+            text: "Go Back",
+            onPress: () => router.back(),
+          },
+        ],
+      );
+    }
+  }, [plant, loading, router]);
 
   // Calculate days since last watered and days until next watering
   const daysSinceWatered = plant
@@ -35,22 +54,68 @@ export default function PlantDetailsScreen() {
       )
     : 0;
 
-  const handleWatering = () => {
+  const handleWatering = async () => {
     if (!plant) return;
 
     setIsWatering(true);
 
-    // Simulate watering action with delay
-    setTimeout(() => {
-      waterPlant(plant.id, plant.wateringSchedule.amount);
+    try {
+      await waterPlant(plant.id, plant.wateringSchedule.amount);
+      Alert.alert(
+        "Success!",
+        `${plant.name} has been watered with ${plant.wateringSchedule.amount}ml of water.`,
+      );
+    } catch (err) {
+      Alert.alert("Error", "Failed to water the plant. Please try again.");
+    } finally {
       setIsWatering(false);
-    }, 2000);
+    }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#14532d" />
+        <Text className="mt-4 text-gray-600">Loading plant details...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center p-6">
+        <Ionicons name="alert-circle" size={48} color="#ef4444" />
+        <Text className="text-red-600 font-bold text-lg mt-4">Error</Text>
+        <Text className="text-gray-600 text-center mt-2">{error}</Text>
+        <TouchableOpacity
+          className="mt-4 bg-green-700 px-6 py-3 rounded-lg"
+          onPress={() => router.back()}
+        >
+          <Text className="text-white font-medium">Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Plant not found
   if (!plant) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Plant not found</Text>
+      <View className="flex-1 bg-gray-50 items-center justify-center p-6">
+        <Ionicons name="leaf-outline" size={48} color="#d1d5db" />
+        <Text className="text-gray-500 font-bold text-lg mt-4">
+          Plant Not Found
+        </Text>
+        <Text className="text-gray-400 text-center mt-2">
+          The plant you're looking for doesn't exist.
+        </Text>
+        <TouchableOpacity
+          className="mt-4 bg-green-700 px-6 py-3 rounded-lg"
+          onPress={() => router.back()}
+        >
+          <Text className="text-white font-medium">Go Back</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -78,8 +143,9 @@ export default function PlantDetailsScreen() {
         <View className="aspect-square w-full bg-gray-200">
           {plant.image ? (
             <Image
-              source={{ uri: "https://picsum.photos/800/800" }}
+              source={{ uri: plant.image }}
               className="w-full h-full"
+              defaultSource={require("../../assets/icon.png")}
             />
           ) : (
             <View className="w-full h-full items-center justify-center">
@@ -186,7 +252,7 @@ export default function PlantDetailsScreen() {
             <View
               className="h-full rounded-full bg-red-500"
               style={{
-                width: `${Math.min(100, plant.temperatureLevel * 2.5)}%`,
+                width: `${Math.min(100, (plant.temperatureLevel / 40) * 100)}%`,
               }}
             />
           </View>
@@ -249,7 +315,7 @@ export default function PlantDetailsScreen() {
         {device ? (
           <TouchableOpacity
             className="flex-row items-center justify-between"
-            onPress={() => alert(`Go to device: ${device.id}`)}
+            onPress={() => router.push(`/device/${device.id}`)}
           >
             <View className="flex-row items-center">
               <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mr-3">

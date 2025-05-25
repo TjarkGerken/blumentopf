@@ -1,22 +1,41 @@
 // app/(tabs)/stats.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { usePlants } from "../../src/context/PlantProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 
 export default function StatsScreen() {
-  const { plants, plantHistory } = usePlants();
-  const [selectedPlantId, setSelectedPlantId] = useState(plants[0]?.id);
+  const { plants, plantHistory, loading, loadPlantHistory } = usePlants();
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<
     "moisture" | "light" | "temperature"
   >("moisture");
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Set initial selected plant
+  useEffect(() => {
+    if (plants.length > 0 && !selectedPlantId) {
+      setSelectedPlantId(plants[0].id);
+    }
+  }, [plants, selectedPlantId]);
+
+  // Load history when plant is selected
+  useEffect(() => {
+    if (selectedPlantId && !plantHistory[selectedPlantId]) {
+      setLoadingHistory(true);
+      loadPlantHistory(selectedPlantId).finally(() => {
+        setLoadingHistory(false);
+      });
+    }
+  }, [selectedPlantId, plantHistory, loadPlantHistory]);
 
   const selectedPlant = plants.find((p) => p.id === selectedPlantId);
   const history = selectedPlantId ? plantHistory[selectedPlantId] || [] : [];
@@ -84,65 +103,81 @@ export default function StatsScreen() {
   // Count watering events
   const wateringCount = history.filter((h) => h.watered).length;
 
+  // Loading state
+  if (loading) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#14532d" />
+        <Text className="mt-4 text-gray-600">Loading statistics...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="flex-1 bg-gray-50">
       <View className="p-4">
         {/* Plant selector */}
-        <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-gray-500 mb-2">Select plant</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {plants.map((plant) => (
-              <TouchableOpacity
-                key={plant.id}
-                className={`mr-3 p-2 rounded-lg ${
-                  selectedPlantId === plant.id
-                    ? "bg-green-100 border border-green-300"
-                    : "bg-gray-100"
-                }`}
-                onPress={() => setSelectedPlantId(plant.id)}
-              >
-                <Text
-                  className={
+        {plants.length > 0 && (
+          <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <Text className="text-gray-500 mb-2">Select plant</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {plants.map((plant) => (
+                <TouchableOpacity
+                  key={plant.id}
+                  className={`mr-3 p-2 rounded-lg ${
                     selectedPlantId === plant.id
-                      ? "text-green-800"
-                      : "text-gray-700"
-                  }
+                      ? "bg-green-100 border border-green-300"
+                      : "bg-gray-100"
+                  }`}
+                  onPress={() => setSelectedPlantId(plant.id)}
                 >
-                  {plant.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+                  <Text
+                    className={
+                      selectedPlantId === plant.id
+                        ? "text-green-800"
+                        : "text-gray-700"
+                    }
+                  >
+                    {plant.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {selectedPlant ? (
           <>
             {/* Stats overview */}
             <View className="flex-row justify-between mb-4">
               <View className="bg-white rounded-lg p-3 shadow-sm flex-1 mr-2">
-                <View className="flex-row items-center">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-500 text-xs">Avg. Moisture</Text>
                   <Ionicons name="water" size={16} color="#0ea5e9" />
-                  <Text className="text-gray-500 text-xs ml-1">
-                    Avg. Moisture
-                  </Text>
                 </View>
-                <Text className="text-lg font-bold mt-1">{moistureAvg}%</Text>
+                <Text className="text-2xl font-bold text-blue-500">
+                  {moistureAvg}%
+                </Text>
               </View>
 
               <View className="bg-white rounded-lg p-3 shadow-sm flex-1 mr-2">
-                <View className="flex-row items-center">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-500 text-xs">Avg. Light</Text>
                   <Ionicons name="sunny" size={16} color="#f59e0b" />
-                  <Text className="text-gray-500 text-xs ml-1">Avg. Light</Text>
                 </View>
-                <Text className="text-lg font-bold mt-1">{lightAvg}%</Text>
+                <Text className="text-2xl font-bold text-amber-500">
+                  {lightAvg}%
+                </Text>
               </View>
 
               <View className="bg-white rounded-lg p-3 shadow-sm flex-1">
-                <View className="flex-row items-center">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="text-gray-500 text-xs">Waterings</Text>
                   <Ionicons name="water-outline" size={16} color="#0ea5e9" />
-                  <Text className="text-gray-500 text-xs ml-1">Waterings</Text>
                 </View>
-                <Text className="text-lg font-bold mt-1">{wateringCount}</Text>
+                <Text className="text-2xl font-bold text-blue-500">
+                  {wateringCount}
+                </Text>
               </View>
             </View>
 
@@ -210,7 +245,12 @@ export default function StatsScreen() {
                 </View>
               </View>
 
-              {history.length > 0 ? (
+              {loadingHistory ? (
+                <View className="h-40 items-center justify-center">
+                  <ActivityIndicator size="small" color="#14532d" />
+                  <Text className="text-gray-400 mt-2">Loading history...</Text>
+                </View>
+              ) : history.length > 0 && last7Days.length > 0 ? (
                 <LineChart
                   data={chartData}
                   width={Dimensions.get("window").width - 40}
@@ -245,7 +285,7 @@ export default function StatsScreen() {
                   .slice(0, 5)
                   .map((entry, index) => (
                     <View
-                      key={index}
+                      key={`${entry.date.toISOString()}-${index}`}
                       className={`flex-row items-center py-2 ${
                         index <
                         history.filter((h) => h.watered).slice(0, 5).length - 1
@@ -258,7 +298,7 @@ export default function StatsScreen() {
                       </View>
                       <View className="flex-1">
                         <Text className="text-gray-800">
-                          Watered {entry.waterAmount}ml
+                          Watered {entry.waterAmount || 0}ml
                         </Text>
                         <Text className="text-xs text-gray-500">
                           {new Date(entry.date).toLocaleDateString()} at{" "}

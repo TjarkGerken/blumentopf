@@ -1,15 +1,21 @@
 // app/(tabs)/index.tsx
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { usePlants } from "../../src/context/PlantProvider";
 import { router } from "expo-router";
 import { PlantCard } from "../../src/components/PlantCard";
 import { Ionicons } from "@expo/vector-icons";
 import { DeviceCard } from "~/components/DeviceCard";
-import { SafeAreaLayout } from "~/components/SaveAreaLayout";
 
 export default function HomeScreen() {
-  const { plants, devices } = usePlants();
+  const { plants, devices, loading, error, refreshData } = usePlants();
 
   const getUnhealthyPlants = () => {
     return plants.filter(
@@ -20,9 +26,54 @@ export default function HomeScreen() {
 
   const unhealthyPlants = getUnhealthyPlants();
 
+  // Handle refresh
+  const handleRefresh = async () => {
+    try {
+      await refreshData();
+    } catch (err) {
+      Alert.alert("Error", "Failed to refresh data. Please try again.");
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#14532d" />
+        <Text className="mt-4 text-gray-600">Loading your plants...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center p-6">
+        <Ionicons name="alert-circle" size={48} color="#ef4444" />
+        <Text className="text-red-600 font-bold text-lg mt-4">Oops!</Text>
+        <Text className="text-gray-600 text-center mt-2">{error}</Text>
+        <TouchableOpacity
+          className="mt-4 bg-green-700 px-6 py-3 rounded-lg"
+          onPress={handleRefresh}
+        >
+          <Text className="text-white font-medium">Try Again</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="flex-1 bg-gray-50">
       <View className="p-4">
+        {/* Pull to refresh indicator */}
+        <TouchableOpacity
+          className="flex-row items-center justify-center mb-4 p-2"
+          onPress={handleRefresh}
+        >
+          <Ionicons name="refresh" size={16} color="#6b7280" />
+          <Text className="text-gray-500 ml-1 text-sm">Pull to refresh</Text>
+        </TouchableOpacity>
+
         {/* Alert section for plants that need attention */}
         {unhealthyPlants.length > 0 && (
           <View className="bg-orange-50 rounded-xl p-4 mb-6 border border-orange-200">
@@ -36,15 +87,13 @@ export default function HomeScreen() {
                 onPress={() => router.push(`/plant/${plant.id}`)}
               >
                 <View className="w-2 h-2 rounded-full bg-orange-500 mr-2" />
-                <Text className="text-orange-800">
-                  {plant.name} needs water
+                <Text className="text-orange-800 flex-1">
+                  {plant.name} -{" "}
+                  {plant.healthStatus === "critical"
+                    ? "Critical condition!"
+                    : "Needs attention"}
                 </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color="#9a3412"
-                  className="ml-auto"
-                />
+                <Ionicons name="chevron-forward" size={16} color="#9a3412" />
               </TouchableOpacity>
             ))}
           </View>
